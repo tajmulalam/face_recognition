@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.google.android.cameraview.demo.AddPerson"
+    tools:context="com.google.android.cameraview.demo.activities.AddPerson"
     tools:showIn="@layout/activity_add_person">-->
 
 
@@ -19,7 +19,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="8dp"
-    tools:context="com.google.android.cameraview.demo.AddPerson">
+    tools:context="com.google.android.cameraview.demo.activities.AddPerson">
 
     <LinearLayout
         android:layout_width="match_parent"

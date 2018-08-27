@@ -22,7 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Demo">
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddPerson"
+            android:name=".activities.AddPerson"
             android:label="@string/title_activity_add_person"
             android:theme="@style/Theme.Demo.NoActionBar"></activity>
     </application>

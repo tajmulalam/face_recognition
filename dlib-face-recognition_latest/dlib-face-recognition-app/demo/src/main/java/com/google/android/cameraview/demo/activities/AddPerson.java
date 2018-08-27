@@ -2,7 +2,7 @@
  * Created by Gaurav on Feb 23, 2018
  */
 
-package com.google.android.cameraview.demo;
+package com.google.android.cameraview.demo.activities;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -19,12 +19,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.cameraview.demo.utils.FileUtils;
+import com.google.android.cameraview.demo.R;
 import com.tzutalin.dlib.Constants;
 import com.tzutalin.dlib.FaceRec;
 import com.tzutalin.dlib.VisionDetRet;

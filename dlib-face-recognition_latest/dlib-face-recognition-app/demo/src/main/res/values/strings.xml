@@ -24,4 +24,5 @@
     <string name="take_picture">Recognize</string>
     <string name="add_person">Add</string>
     <string name="title_activity_add_person">AddPerson</string>
+    <string name="back"><![CDATA[ <Back]]></string>
 </resources>
