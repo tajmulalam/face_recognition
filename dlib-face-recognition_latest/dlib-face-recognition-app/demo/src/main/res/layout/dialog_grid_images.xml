@@ -7,11 +7,14 @@
 
     <Button
         android:id="@+id/btnBack"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
         android:background="@drawable/ic_take_photo_drawable"
         android:text="@string/back"
         android:gravity="left|center"
+        android:padding="3dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
         android:textStyle="bold"
         android:textSize="20sp"
         android:textAllCaps="false" />
