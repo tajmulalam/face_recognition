@@ -29,6 +29,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.media.ExifInterface;
@@ -66,13 +67,20 @@ import com.tzutalin.dlib.VisionDetRet;
 
 import junit.framework.Assert;
 
+import org.jcodec.api.android.AndroidSequenceEncoder;
+import org.jcodec.common.io.FileChannelWrapper;
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.model.Rational;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 // This demo app uses dlib face recognition based on resnet
@@ -524,6 +532,110 @@ public class MainActivity extends Activity implements
                 dialog.dismiss();
             }
         });
+        dialog.findViewById(R.id.btnMakeVideo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (gridItems.size() > 0) {
+                    showLoadingDialog();
+                    tvProgressTxt.setText("Making Video...");
+                    progressBar.setProgress(10);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            makeVideo();
+                        }
+                    }).start();
+                }
+            }
+        });
+    }
+
+    int counter = 1;
+
+    private void makeVideo() {
+        counter = 1;
+        FileChannelWrapper out = null;
+        File dir = new File(Constants.getDLibImageDirectoryPath());
+        File file = new File(dir, "test_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
+
+        try {
+            try {
+                out = NIOUtils.writableFileChannel(file.getAbsolutePath());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            AndroidSequenceEncoder encoder = new AndroidSequenceEncoder(out, Rational.R(25, 1));
+            for (GridViewItem gridViewItem : gridItems) {
+                ExifInterface exif = null;
+                try {
+                    exif = new ExifInterface(gridViewItem.getPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                int orientation = 0;
+                if (exif != null) {
+                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                            ExifInterface.ORIENTATION_UNDEFINED);
+                }
+                final Bitmap bitmap = BitmapFactory.decodeFile(gridViewItem.getPath());
+                Bitmap rBitmap = FileUtils.rotateBitmap(bitmap, orientation);
+                int nh = 0;
+                if (rBitmap != null) {
+                    nh = (int) (rBitmap.getHeight() * (512.0 / rBitmap.getWidth()));
+                }
+                Bitmap scaled = null;
+                if (rBitmap != null) {
+                    scaled = Bitmap.createScaledBitmap(rBitmap, 512, nh, true);
+                }
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                if (scaled != null) {
+                    scaled.compress(Bitmap.CompressFormat.PNG, 70, stream);
+                    encoder.encodeImage(scaled);
+                }
+                if (counter <= 100)
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            progressBar.setProgress(counter++);
+                        }
+                    });
+            }
+            encoder.finish();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setProgress(100);
+                    hideDialog();
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setProgress(100);
+                    hideDialog();
+                }
+            });
+        } finally {
+            NIOUtils.closeQuietly(out);
+        }
+    }
+
+    public Bitmap getBitmap(String path) {
+        try {
+            Bitmap bitmap = null;
+            File f = new File(path);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+            bitmap = BitmapFactory.decodeStream(new FileInputStream(f), null, options);
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void checkSimilarFiles(ArrayList<String> fileNamesFound) {
@@ -564,7 +676,7 @@ public class MainActivity extends Activity implements
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    adapter=new SimilarImageAdapter(MainActivity.this,gridItems);
+                    adapter = new SimilarImageAdapter(MainActivity.this, gridItems);
                     gridView.invalidateViews();
                     gridView.setAdapter(adapter);
                 }
