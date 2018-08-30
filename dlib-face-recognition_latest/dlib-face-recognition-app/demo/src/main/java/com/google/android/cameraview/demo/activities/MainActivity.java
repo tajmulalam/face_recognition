@@ -37,10 +37,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -82,6 +84,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.jcodec.api.SequenceEncoder;
 
 // This demo app uses dlib face recognition based on resnet
 public class MainActivity extends Activity implements
@@ -196,6 +200,7 @@ public class MainActivity extends Activity implements
             super.onPreExecute();
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         protected Void doInBackground(Void... args) {
             // create dlib_rec_example directory in sd card and copy model files
             File folder = new File(Constants.getDLibDirectoryPath());
@@ -521,6 +526,7 @@ public class MainActivity extends Activity implements
         gridView.setAdapter(adapter);
         dialog.show();
         new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void run() {
                 checkSimilarFiles(fileNamesFound);
@@ -550,12 +556,14 @@ public class MainActivity extends Activity implements
         });
     }
 
-    int counter = 1;
+    int counter = 10;
 
     private void makeVideo() {
-        counter = 1;
+        counter = 10;
         FileChannelWrapper out = null;
-        File dir = new File(Constants.getDLibImageDirectoryPath());
+        File dir = new File(Constants.getDLibVideoDirectoryPath());
+        if (!dir.exists())
+            dir.mkdir();
         File file = new File(dir, "test_" + String.valueOf(System.currentTimeMillis()) + ".mp4");
 
         try {
@@ -564,7 +572,8 @@ public class MainActivity extends Activity implements
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            AndroidSequenceEncoder encoder = new AndroidSequenceEncoder(out, Rational.R(25, 1));
+
+            AndroidSequenceEncoder encoder = new AndroidSequenceEncoder(out, Rational.ONE);
             for (GridViewItem gridViewItem : gridItems) {
                 ExifInterface exif = null;
                 try {
@@ -638,6 +647,7 @@ public class MainActivity extends Activity implements
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void checkSimilarFiles(ArrayList<String> fileNamesFound) {
         List<String> fileList = getAllShownImagesPath();
         if (fileList != null && fileList.size() > 0) {
@@ -685,6 +695,7 @@ public class MainActivity extends Activity implements
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private ArrayList<String> getAllShownImagesPath() {
         Uri uri;
         Cursor cursor;
@@ -693,16 +704,14 @@ public class MainActivity extends Activity implements
         String absolutePathOfImage = null;
         uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-        String[] projection = {MediaStore.MediaColumns.DATA,
-                MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
-
-        cursor = getContentResolver().query(uri, projection, null,
+        String[] projection = {MediaStore.Images.Media.DATA};
+        final String[] selectionArgs = {CAMERA_IMAGE_BUCKET_ID};
+        final String selection = MediaStore.Images.Media.BUCKET_ID + " = ?";
+        cursor = getContentResolver().query(uri, projection, selection, selectionArgs,
                 null, null);
 
         if (cursor != null) {
             column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-            column_index_folder_name = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
             while (cursor.moveToNext()) {
                 absolutePathOfImage = cursor.getString(column_index_data);
 
@@ -712,4 +721,17 @@ public class MainActivity extends Activity implements
         return listOfAllImages;
     }
 
+    public static final String CAMERA_IMAGE_BUCKET_NAME =
+            Environment.getExternalStorageDirectory().toString()
+                    + "/DCIM/Camera";
+    public static final String CAMERA_IMAGE_BUCKET_ID =
+            getBucketId(CAMERA_IMAGE_BUCKET_NAME);
+
+    /**
+     * Matches code in MediaProvider.computeBucketValues. Should be a common
+     * function.
+     */
+    public static String getBucketId(String path) {
+        return String.valueOf(path.toLowerCase().hashCode());
+    }
 }

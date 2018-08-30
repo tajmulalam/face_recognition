@@ -24,6 +24,10 @@ public final class Constants {
         String targetPath = getDLibDirectoryPath()+ File.separator + "images";
         return targetPath;
     }
+    public static String getDLibVideoDirectoryPath() {
+        String targetPath = getDLibDirectoryPath()+ File.separator + "videos";
+        return targetPath;
+    }
 
     public static String getFaceShapeModelPath() {
         String targetPath = getDLibDirectoryPath() + File.separator + "shape_predictor_5_face_landmarks.dat";
