@@ -83,7 +83,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jcodec.api.SequenceEncoder;
 
@@ -372,6 +374,8 @@ public class MainActivity extends Activity implements
                         == PackageManager.PERMISSION_GRANTED) {
                     new initRecAsync().execute();
                 }
+            }else {
+                checkPermissions();
             }
             return;
         }
@@ -686,6 +690,10 @@ public class MainActivity extends Activity implements
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    // add elements to al, including duplicates
+                    Set<GridViewItem> hs = new HashSet<>(gridItems);
+                    gridItems.clear();
+                    gridItems.addAll(hs);
                     adapter = new SimilarImageAdapter(MainActivity.this, gridItems);
                     gridView.invalidateViews();
                     gridView.setAdapter(adapter);
